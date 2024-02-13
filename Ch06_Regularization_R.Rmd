@@ -358,16 +358,16 @@ col_tst <- College[-samp_idx,]
 
 Your code:
 ```{r,echo=TRUE}
-#
-#
+lst.sq <- lm(Apps ~ . , col_tr)
+summary(lst.sq)
+pred <- predict(lst.sq, col_tst)
+tst.err <- sqrt(mean((pred-col_tst$Apps)^2))
+tst.err
 ```
 
 Your answer:
 
 ~~~
-Please write your answer in full sentences.
-
-
 ~~~
 
 (c) Fit a ridge regression model on the training set, with $\lambda$ chosen by cross-validation. Report the test error obtained.
@@ -375,15 +375,24 @@ Please write your answer in full sentences.
 
 Your code:
 ```{r,echo=TRUE}
-#
-#
+
+x <- model.matrix(Apps ~ ., col_tr)[, -1]
+y <- col_tr$Apps
+cv <- cv.glmnet(x, y, alpha = 0)
+grid <- cv$lambda.min
+col.rdg <- glmnet(x, y, alpha = 0, lambda = grid)
+plot(cv)
+col.rdg
+
+x_tst <- model.matrix(Apps ~ ., col_tst)[, -1]
+pred <- predict(col.rdg, x_tst)
+tst.err <- sqrt(mean((pred-col_tst$Apps)^2))
+tst.err
 ```
 
 Your answer:
 
 ~~~
-Please write your answer in full sentences.
-
 
 ~~~
 
@@ -391,15 +400,21 @@ Please write your answer in full sentences.
 
 Your code:
 ```{r,echo=TRUE}
-#
-#
+cv <- cv.glmnet(x, y, alpha = 1)
+grid <- cv$lambda.min
+col.lasso <- glmnet(x, y, alpha = 1, lambda = grid)
+plot(cv)
+col.lasso
+
+#x_tst <- model.matrix(Apps ~ ., col_tst)[, -1]
+pred <- predict(col.lasso, x_tst)
+tst.err <- sqrt(mean((pred-col_tst$Apps)^2))
+tst.err
 ```
 
 Your answer:
 
 ~~~
-Please write your answer in full sentences.
-
 
 ~~~
 
