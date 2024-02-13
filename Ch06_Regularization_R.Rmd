@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = FALSE,message=FALSE,fig.align="center",fig.width=7,
 pacman::p_load(
        carx
       , leaps
+      , glmnet
       , ggplot2
       , ggExtra
       , reshape2
@@ -290,15 +291,31 @@ We can see Adj. R-sq suggests different degree of 4 or 7 in forward/backward ste
 
 Your code:
 ```{r,echo=TRUE}
-#
-#
+x.lasso <- model.matrix(y ~ ., df)[, -1]
+y.lasso <- df$y
+grid <- 10^seq(10, -2, length = 100)
+set.seed(1)
+train <- sample(1:nrow(x.lasso), nrow(x.lasso) / 2)
+test <- (-train)
+y.test <- y.lasso[test]
+lasso.mod <- glmnet(x.lasso[train , ], y.lasso[train], 
+                    alpha = 1, lambda = grid) # alpha = 1: lasso; 0: ridge reg
+plot(lasso.mod, main = "Lasso")
+
+set.seed(1)
+cv.out <- cv.glmnet(x.lasso[train , ], y.lasso[train], alpha = 1)
+plot(cv.out)
+bestlam <- cv.out$lambda.min
+lasso.pred <- predict(lasso.mod , 
+                      s = bestlam ,newx = x.lasso[test , ])
+mean((lasso.pred - y.test)^2)
+
+
 ```
 
 Your answer:
 
 ~~~
-Please write your answer in full sentences.
-
 
 ~~~
 
@@ -330,8 +347,11 @@ data(College,package = "ISLR2")
 
 Your code:
 ```{r,echo=TRUE}
-#
-#
+size<-floor(dim(College)[1]*0.7)
+set.seed(123)
+samp_idx<-sample(1:dim(College)[1],size,FALSE)
+col_tr <- College[samp_idx,]
+col_tst <- College[-samp_idx,]
 ```
 
 (b) Fit a linear model using least squares on the training set, and report the test error obtained.
