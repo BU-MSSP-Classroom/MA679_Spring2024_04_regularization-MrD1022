@@ -10,6 +10,7 @@ bibliography: lecture.bib
 knitr::opts_chunk$set(echo = FALSE,message=FALSE,fig.align="center",fig.width=7,fig.height=2.5)
 pacman::p_load(
        carx
+      , leaps
       , ggplot2
       , ggExtra
       , reshape2
@@ -59,7 +60,7 @@ show_code <- TRUE
 Please take a look at the Ames Hoursing data.
 ```{r}
 library(AmesHousing)
-?ames_raw
+#?ames_raw
 ```
 
 ### Questions
@@ -91,8 +92,7 @@ Here are few rules:
 
 Your code:
 ```{r,echo=TRUE}
-#
-#
+
 ```
 
 Your answer:
@@ -162,8 +162,9 @@ In this exercise, we will generate simulated data, and will then use this data t
 
 Your code:
 ```{r,echo=TRUE}
-#
-#
+set.seed(123)
+x <- rnorm(100, 0, 1)
+epsilon <- rnorm(100, 0, 1)
 ```
 
 
@@ -171,8 +172,7 @@ Your code:
 
 Your code:
 ```{r,echo=TRUE}
-#
-#
+y <- -6 + 1 * x + 2 * x^2 + 3 * x^3 + epsilon
 ```
 
 
@@ -180,32 +180,110 @@ Your code:
 
 Your code:
 ```{r,echo=TRUE}
-#
-#
+x2 <- x^2
+x3 <- x^3
+x4 <- x^4
+x5 <- x^5
+x6 <- x^6
+x7 <- x^7
+x8 <- x^8
+x9 <- x^9
+x10 <- x^10
+df <- data.frame(x, x2, x3, x4, x5, x6, x7, x8, x9, x10, y)
+regfit.full <- regsubsets(y~., df)
+reg.summary <- summary(regfit.full)
+reg.summary
+#names(reg.summary)
+reg.summary$rsq
+plot(reg.summary$rss , xlab = "Number of Variables",
+ylab = "RSS", type = "l")
+plot(reg.summary$adjr2 , xlab = "Number of Variables",
+ylab = "Adjusted RSq", type = "l")
+a <- which.max(reg.summary$adjr2)
+points(which.max(reg.summary$adjr2), 
+       reg.summary$adjr2[a], 
+       col = "red", cex = 2, pch = 20)
+
+plot(reg.summary$cp, xlab = "Number of Variables",
+     ylab = "Cp", type = "l")
+a <- which.min(reg.summary$cp)
+points(which.min(reg.summary$cp), reg.summary$cp[a], 
+       col = "red", cex = 2,pch = 20)
+a<- which.min(reg.summary$bic)
+plot(reg.summary$bic , xlab = "Number of Variables",
+     ylab = "BIC", type = "l")
+points(which.min(reg.summary$bic), 
+       reg.summary$bic[a], 
+       col = "red", cex = 2, pch = 20)
+# plot(regfit.full , scale = "r2")
+# plot(regfit.full , scale = "adjr2")
+# plot(regfit.full , scale = "Cp")
+# plot(regfit.full , scale = "bic")
 ```
+
 
 Your answer:
 
 ~~~
-Please write your answer in full sentences.
-
-
+The asterisks suggest cubic x (x3) in every model, and x, x2, x3 after cubic function, thus the best selection should contain x, x2 and x3.
+R squares statistic shows nearly no increase after cubic model.
+Cp, BIC suggest best model to be cubic model, while adj. R-sq pointing best fit at degree=7.
 ~~~
 
 (d) Repeat (c), using forward stepwise selection and also using backwards stepwise selection. How does your answer compare to the results in (c)?
 
 Your code:
 ```{r,echo=TRUE}
-#
-#
+# return max 8 variables
+# Forward stepwise
+regfit.fwd <- regsubsets(y ~ ., data = df, nvmax = 8, method = "forward")
+reg.summary <- summary(regfit.fwd)
+plot(reg.summary$adjr2 ,main = "Forward", xlab = "Number of Variables",
+     ylab = "Adjusted RSq", type = "l")
+a <- which.max(reg.summary$adjr2)
+points(which.max(reg.summary$adjr2), 
+       reg.summary$adjr2[a], 
+       col = "red", cex = 2, pch = 20)
+plot(reg.summary$cp, xlab = "Number of Variables", main = "Forward",
+     ylab = "Cp", type = "l")
+a <- which.min(reg.summary$cp)
+points(which.min(reg.summary$cp), reg.summary$cp[a], 
+       col = "red", cex = 2,pch = 20)
+a<- which.min(reg.summary$bic)
+plot(reg.summary$bic , xlab = "Number of Variables", main = "Forward",
+     ylab = "BIC", type = "l")
+points(which.min(reg.summary$bic), 
+       reg.summary$bic[a], 
+       col = "red", cex = 2, pch = 20)
+
+# Backward stepwise
+regfit.bwd <- regsubsets(y ~ ., data = df, nvmax = 8, method = "backward")
+reg.summary <- summary(regfit.bwd)
+plot(reg.summary$adjr2 ,main = "Backward", xlab = "Number of Variables",
+     ylab = "Adjusted RSq", type = "l")
+a <- which.max(reg.summary$adjr2)
+points(which.max(reg.summary$adjr2), 
+       reg.summary$adjr2[a], 
+       col = "red", cex = 2, pch = 20)
+plot(reg.summary$cp, xlab = "Number of Variables", main = "Backward",
+     ylab = "Cp", type = "l")
+a <- which.min(reg.summary$cp)
+points(which.min(reg.summary$cp), reg.summary$cp[a], 
+       col = "red", cex = 2,pch = 20)
+a<- which.min(reg.summary$bic)
+plot(reg.summary$bic , xlab = "Number of Variables", main = "Backward",
+     ylab = "BIC", type = "l")
+points(which.min(reg.summary$bic), 
+       reg.summary$bic[a], 
+       col = "red", cex = 2, pch = 20)
+# plot(regfit.fwd , scale = "r2")
+
 ```
 
 Your answer:
 
 ~~~
-Please write your answer in full sentences.
-
-
+We can see Adj. R-sq suggests different degree of 4 or 7 in forward/backward stepwise selections, while Cp and BIC for both methods indicating cubic is optimal.
 ~~~
 
 (e) Now fit a lasso model to the simulated data, again using $X$, $X^{2},\dots, X^{10}$ as predictors. Use cross-validation to select the optimal value of $\lambda$. Create plots of the cross-validation error as a function of $\lambda$. Report the resulting coefficient estimates, and discuss the results obtained.
